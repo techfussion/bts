@@ -1,0 +1,12 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h1 style="margin-bottom: 1rem;">Welcome to BUK Bus Ticketing System</h1>
+    <p style="margin-bottom: 2rem; font-size: 1.1rem;">Book your bus tickets online and travel hassle-free</p>
+    <div>
+        <a href="{% url 'tickets:register' %}" class="btn btn-success" style="margin-right: 1rem;">Register Now</a>
+        <a href="{% url 'tickets:login' %}" class="btn">Login</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto;">
+    <h2 style="margin-bottom: 1.5rem;">Book Bus Ticket</h2>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        <p><strong>Fare:</strong> ₦{{ fare }}</p>
+        <p><strong>Your Balance:</strong> ₦{{ wallet.balance }}</p>
+        {% if wallet.balance < fare %}
+            <p style="color: #e74c3c; font-weight: bold;">⚠️ Insufficient Balance</p>
+        {% endif %}
+    </div>
+    
+    {% if wallet.balance >= fare %}
+        <form method="post">
+            {% csrf_token %}
+            <p style="margin-bottom: 1rem;">Click below to confirm your booking</p>
+            <button type="submit" class="btn btn-success">Confirm Booking</button>
+            <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Cancel</a>
+        </form>
+    {% else %}
+        <a href="{% url 'tickets:fund_wallet' %}" class="btn btn-success">Fund Wallet First</a>
+        <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Back</a>
+    {% endif %}
+</div>
+{% endblock %}

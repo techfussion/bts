@@ -1,0 +1,59 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <h2 style="margin-bottom: 1.5rem;">📷 QR Code Scanner</h2>
+    
+    <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Manual Entry (Paste QR Data)</p>
+        <input type="text" id="qrInput" placeholder="Paste QR code data here" style="width: 100%; padding: 1rem; font-size: 1rem; border: 2px solid #ddd; border-radius: 4px;">
+        <button onclick="verifyTicket()" class="btn btn-success" style="margin-top: 1rem; width: 100%;">Verify Ticket</button>
+    </div>
+    
+    <div id="result" style="margin-top: 2rem;"></div>
+</div>
+
+<script>
+function verifyTicket() {
+    const qrData = document.getElementById('qrInput').value.trim();
+    const resultDiv = document.getElementById('result');
+    
+    if (!qrData) {
+        resultDiv.innerHTML = '<div class="alert alert-error">Please enter QR data</div>';
+        return;
+    }
+    
+    fetch("{% url 'tickets:verify_ticket' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ qr_data: qrData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h3>${data.message}</h3>
+                    <div style="text-align: left; margin-top: 1rem; background: white; padding: 1rem; border-radius: 4px;">
+                        <p><strong>Booking Ref:</strong> ${data.booking.reference}</p>
+                        <p><strong>Ticket No:</strong> ${data.booking.ticket_number}</p>
+                        <p><strong>Student:</strong> ${data.booking.user}</p>
+                        <p><strong>Fare:</strong> ₦${data.booking.fare}</p>
+                        <p><strong>Status:</strong> <span class="badge badge-danger">${data.booking.status}</span></p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('qrInput').value = '';
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-error">❌ ${data.message}</div>`;
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error}</div>`;
+    });
+}
+</script>
+{% endblock %}

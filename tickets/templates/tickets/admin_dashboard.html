@@ -1,0 +1,56 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem;">Admin Dashboard</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3>Total Bookings</h3>
+        <p style="font-size: 2rem; font-weight: bold;">{{ all_bookings.count }}</p>
+    </div>
+    <div class="card">
+        <h3>Active Tickets</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #27ae60;">{{ active_bookings }}</p>
+    </div>
+    <div class="card">
+        <h3>Used Tickets</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #e74c3c;">{{ used_bookings }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 1rem;">All Bookings</h3>
+    {% if all_bookings %}
+        <table>
+            <tr>
+                <th>Booking Ref</th>
+                <th>Ticket No</th>
+                <th>Student</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Booking Date</th>
+                <th>Used Date</th>
+            </tr>
+            {% for booking in all_bookings %}
+            <tr>
+                <td>{{ booking.booking_reference }}</td>
+                <td>{{ booking.ticket_number }}</td>
+                <td>{{ booking.user.username }}</td>
+                <td>₦{{ booking.fare }}</td>
+                <td>
+                    {% if booking.status == 'ACTIVE' %}
+                        <span class="badge badge-success">{{ booking.status }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ booking.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ booking.booking_date|date:"Y-m-d H:i" }}</td>
+                <td>{{ booking.used_date|date:"Y-m-d H:i"|default:"N/A" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No bookings yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

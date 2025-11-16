@@ -1,0 +1,89 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem;">Student Dashboard</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3>Wallet Balance</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #27ae60;">₦{{ wallet.balance }}</p>
+        <a href="{% url 'tickets:fund_wallet' %}" class="btn btn-success">Fund Wallet</a>
+    </div>
+    
+    <div class="card">
+        <h3>Book Ticket</h3>
+        <p>Fare: ₦200.00</p>
+        <a href="{% url 'tickets:create_booking' %}" class="btn">Book Now</a>
+    </div>
+    
+    <div class="card">
+        <h3>My Bookings</h3>
+        <p>Total: {{ recent_bookings.count }}</p>
+        <a href="{% url 'tickets:booking_history' %}" class="btn">View All</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 1rem;">Recent Bookings</h3>
+    {% if recent_bookings %}
+        <table>
+            <tr>
+                <th>Booking Ref</th>
+                <th>Ticket No</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+            {% for booking in recent_bookings %}
+            <tr>
+                <td>{{ booking.booking_reference }}</td>
+                <td>{{ booking.ticket_number }}</td>
+                <td>₦{{ booking.fare }}</td>
+                <td>
+                    {% if booking.status == 'ACTIVE' %}
+                        <span class="badge badge-success">{{ booking.status }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ booking.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ booking.booking_date|date:"Y-m-d H:i" }}</td>
+                <td><a href="{% url 'tickets:booking_detail' booking.id %}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">View</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No bookings yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 1rem;">Recent Transactions</h3>
+    {% if recent_transactions %}
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Date</th>
+            </tr>
+            {% for trans in recent_transactions %}
+            <tr>
+                <td>
+                    {% if trans.transaction_type == 'CREDIT' %}
+                        <span class="badge badge-success">{{ trans.transaction_type }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ trans.transaction_type }}</span>
+                    {% endif %}
+                </td>
+                <td>₦{{ trans.amount }}</td>
+                <td>{{ trans.description }}</td>
+                <td>{{ trans.timestamp|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No transactions yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

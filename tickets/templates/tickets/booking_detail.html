@@ -1,0 +1,37 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <h2 style="margin-bottom: 1.5rem;">🎫 Ticket Details</h2>
+    
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <p><strong>Booking Reference:</strong> {{ booking.booking_reference }}</p>
+        <p><strong>Ticket Number:</strong> {{ booking.ticket_number }}</p>
+        <p><strong>Passenger:</strong> {{ booking.user.username }}</p>
+        <p><strong>Fare:</strong> ₦{{ booking.fare }}</p>
+        <p><strong>Status:</strong> 
+            {% if booking.status == 'ACTIVE' %}
+                <span class="badge badge-success">{{ booking.status }}</span>
+            {% else %}
+                <span class="badge badge-danger">{{ booking.status }}</span>
+            {% endif %}
+        </p>
+        <p><strong>Booking Date:</strong> {{ booking.booking_date|date:"Y-m-d H:i:s" }}</p>
+        {% if booking.used_date %}
+            <p><strong>Used Date:</strong> {{ booking.used_date|date:"Y-m-d H:i:s" }}</p>
+        {% endif %}
+    </div>
+    
+    {% if booking.qr_code %}
+        <div style="background: white; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; display: inline-block;">
+            <img src="{{ booking.qr_code.url }}" alt="QR Code" style="max-width: 300px;">
+        </div>
+        <p style="margin-top: 1rem; color: #7f8c8d;">Show this QR code at the boarding terminal</p>
+    {% endif %}
+    
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'tickets:booking_history' %}" class="btn">Back to History</a>
+        <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Dashboard</a>
+    </div>
+</div>
+{% endblock %}

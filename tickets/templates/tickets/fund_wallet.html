@@ -1,0 +1,17 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto;">
+    <h2 style="margin-bottom: 1.5rem;">Fund Wallet</h2>
+    <p style="margin-bottom: 1rem;">Current Balance: <strong>₦{{ request.user.wallet.balance }}</strong></p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Amount (₦):</label>
+            <input type="number" name="amount" min="1" step="0.01" required>
+        </div>
+        <button type="submit" class="btn btn-success">Add Funds</button>
+        <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

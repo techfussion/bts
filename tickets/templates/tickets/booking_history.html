@@ -1,0 +1,38 @@
+{% extends 'tickets/base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem;">Booking History</h2>
+    {% if bookings %}
+        <table>
+            <tr>
+                <th>Booking Ref</th>
+                <th>Ticket No</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Booking Date</th>
+                <th>Action</th>
+            </tr>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.booking_reference }}</td>
+                <td>{{ booking.ticket_number }}</td>
+                <td>₦{{ booking.fare }}</td>
+                <td>
+                    {% if booking.status == 'ACTIVE' %}
+                        <span class="badge badge-success">{{ booking.status }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ booking.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ booking.booking_date|date:"Y-m-d H:i" }}</td>
+                <td><a href="{% url 'tickets:booking_detail' booking.id %}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">View Ticket</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No bookings found.</p>
+    {% endif %}
+    <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-top: 1rem;">Back to Dashboard</a>
+</div>
+{% endblock %}
