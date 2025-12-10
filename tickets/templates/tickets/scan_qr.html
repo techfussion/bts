@@ -2,15 +2,15 @@
 
 {% block content %}
 <div class="card" style="max-width: 900px; margin: 0 auto;">
-    <h2 style="margin-bottom: 1.5rem;">📷 Ticket Verification</h2>
+    <h2 style="margin-bottom: 1.5rem;">Ticket Verification</h2>
     
     <!-- Mode Selection Tabs -->
     <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
         <button onclick="switchMode('camera')" id="tab-camera" class="btn btn-success" style="flex: 1;">
-            📷 Scan with Camera
+            Scan with Camera
         </button>
         <button onclick="switchMode('manual')" id="tab-manual" class="btn" style="flex: 1;">
-            ⌨️ Manual Entry
+            Manual Entry
         </button>
     </div>
 
@@ -31,8 +31,8 @@
     <!-- MANUAL MODE -->
     <div id="manual-mode" style="display: none;">
         <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px;">
-            <p style="margin-bottom: 1rem;">Enter booking reference or ticket number:</p>
-            <input type="text" id="manualInput" placeholder="BUK12345678 or TKT1234567890" 
+            <p style="margin-bottom: 1rem;">Enter booking data in the following format: BOOKING:booking_reference|TICKET:ticket_number|USER:students_username </p>
+            <input type="text" id="manualInput" placeholder="BOOKING:BUK12345678|TICKET:TKT1234567890|USER:Vene" 
                    style="width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 4px; text-transform: uppercase; margin-bottom: 1rem;">
             <button onclick="verifyManual()" class="btn btn-success" style="width: 100%;">Verify Ticket</button>
         </div>
@@ -145,7 +145,7 @@ function verifyTicket(qrData) {
         if (data.success) {
             resultDiv.innerHTML = `
                 <div class="alert alert-success">
-                    <h3>✅ ${data.message}</h3>
+                    <h3>${data.message}</h3>
                     <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; text-align: left;">
                         <p><strong>Booking Ref:</strong> ${data.booking.reference}</p>
                         <p><strong>Ticket No:</strong> ${data.booking.ticket_number}</p>
