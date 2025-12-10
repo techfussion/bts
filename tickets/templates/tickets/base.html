@@ -141,7 +141,10 @@
         <h1>BUK Bus Ticketing</h1>
         <div>
             {% if user.is_authenticated %}
-                <a href="{% url 'tickets:dashboard' %}">Dashboard</a>
+                {% if not user.is_staff %}
+                   <a href="{% url 'tickets:dashboard' %}">Dashboard</a>
+                {% endif %}
+
                 {% if user.is_staff %}
                     <a href="{% url 'tickets:admin_dashboard' %}">Admin</a>
                     <a href="{% url 'tickets:scan_qr' %}">Scan QR</a>

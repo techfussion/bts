@@ -1,17 +1,138 @@
 {% extends 'tickets/base.html' %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 0 auto;">
-    <h2 style="margin-bottom: 1.5rem;">Fund Wallet</h2>
-    <p style="margin-bottom: 1rem;">Current Balance: <strong>₦{{ request.user.wallet.balance }}</strong></p>
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label>Amount (₦):</label>
-            <input type="number" name="amount" min="1" step="0.01" required>
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2 style="margin-bottom: 1.5rem;">💰 Fund Wallet</h2>
+    
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 2rem;">
+        <p style="font-size: 1.1rem;">
+            <strong>Current Balance:</strong> 
+            <span style="color: #27ae60; font-size: 1.5rem;">₦{{ request.user.wallet.balance }}</span>
+        </p>
+    </div>
+
+    <!-- Payment Method Tabs -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+        <button onclick="switchPayment('paystack')" id="tab-paystack" class="btn btn-success" style="flex: 1;">
+            💳 Pay with Paystack
+        </button>
+        <button onclick="switchPayment('manual')" id="tab-manual" class="btn" style="flex: 1;">
+            💵 Manual (Testing)
+        </button>
+    </div>
+
+    <!-- PAYSTACK PAYMENT -->
+    <div id="paystack-form">
+        <h3 style="margin-bottom: 1rem;">Quick Amounts</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+            <button onclick="selectAmount(200)" class="btn">₦200</button>
+            <button onclick="selectAmount(500)" class="btn">₦500</button>
+            <button onclick="selectAmount(1000)" class="btn">₦1,000</button>
+            <button onclick="selectAmount(2000)" class="btn">₦2,000</button>
+            <button onclick="selectAmount(5000)" class="btn">₦5,000</button>
+            <button onclick="selectAmount(10000)" class="btn">₦10,000</button>
         </div>
-        <button type="submit" class="btn btn-success">Add Funds</button>
-        <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Cancel</a>
-    </form>
+
+        <div class="form-group">
+            <label>Or Enter Custom Amount (₦):</label>
+            <input type="number" id="amount" min="100" step="50" placeholder="Enter amount" style="width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 4px;">
+        </div>
+
+        <button onclick="initiatePayment()" class="btn btn-success" style="width: 100%; padding: 1rem;">
+            Pay with Paystack
+        </button>
+        
+        <p style="margin-top: 1rem; color: #7f8c8d; text-align: center; font-size: 0.9rem;">
+            Secure payment via Paystack
+        </p>
+    </div>
+
+    <!-- MANUAL PAYMENT (For Testing) -->
+    <div id="manual-form" style="display: none;">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Amount (₦):</label>
+                <input type="number" name="amount" min="1" step="0.01" required style="width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 4px;">
+            </div>
+            <button type="submit" class="btn btn-success" style="width: 100%;">Add Funds Manually</button>
+            <p style="margin-top: 1rem; color: #e74c3c;">⚠️ Manual mode is for testing only</p>
+        </form>
+    </div>
+
+    <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-top: 2rem; width: 100%; text-align: center;">
+        Back to Dashboard
+    </a>
 </div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+function switchPayment(mode) {
+    const paystackForm = document.getElementById('paystack-form');
+    const manualForm = document.getElementById('manual-form');
+    const tabPaystack = document.getElementById('tab-paystack');
+    const tabManual = document.getElementById('tab-manual');
+    
+    if (mode === 'paystack') {
+        paystackForm.style.display = 'block';
+        manualForm.style.display = 'none';
+        tabPaystack.classList.add('btn-success');
+        tabPaystack.classList.remove('btn');
+        tabManual.classList.remove('btn-success');
+        tabManual.classList.add('btn');
+    } else {
+        paystackForm.style.display = 'none';
+        manualForm.style.display = 'block';
+        tabManual.classList.add('btn-success');
+        tabManual.classList.remove('btn');
+        tabPaystack.classList.remove('btn-success');
+        tabPaystack.classList.add('btn');
+    }
+}
+
+function selectAmount(amount) {
+    document.getElementById('amount').value = amount;
+}
+
+function initiatePayment() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    
+    if (!amount || amount < 100) {
+        alert('Please enter an amount of at least ₦100');
+        return;
+    }
+    
+    fetch("{% url 'tickets:initialize_payment' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ amount: amount })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const handler = PaystackPop.setup({
+                key: '{{ PAYSTACK_PUBLIC_KEY }}',
+                email: '{{ request.user.email }}' || '{{ request.user.username }}@buk.edu.ng',
+                amount: amount * 100,
+                ref: data.reference,
+                callback: function(response) {
+                    window.location.href = "{% url 'tickets:verify_payment' 'REF' %}".replace('REF', response.reference);
+                },
+                onClose: function() {
+                    alert('Payment cancelled');
+                }
+            });
+            handler.openIframe();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+</script>
 {% endblock %}

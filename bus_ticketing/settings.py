@@ -118,7 +118,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'tickets' / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -131,3 +132,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = 'tickets:login'
 LOGIN_REDIRECT_URL = 'tickets:dashboard'
 LOGOUT_REDIRECT_URL = 'tickets:home'
+
+# Paystack Configuration
+PAYSTACK_SECRET_KEY = 'sk_test_1385732ce96a94c23cbeb22b537871a71dc6e769'
+PAYSTACK_PUBLIC_KEY = 'pk_test_0320b0071d942fb1e451d8f33add7443e4830663'

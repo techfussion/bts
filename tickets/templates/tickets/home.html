@@ -1,12 +1,105 @@
-{% extends 'tickets/base.html' %}
-
-{% block content %}
-<div class="card" style="text-align: center; padding: 4rem 2rem;">
-    <h1 style="margin-bottom: 1rem;">Welcome to BUK Bus Ticketing System</h1>
-    <p style="margin-bottom: 2rem; font-size: 1.1rem;">Book your bus tickets online and travel hassle-free</p>
-    <div>
-        <a href="{% url 'tickets:register' %}" class="btn btn-success" style="margin-right: 1rem;">Register Now</a>
-        <a href="{% url 'tickets:login' %}" class="btn">Login</a>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUK Bus Ticketing - Home</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; height: 100vh; overflow: hidden; }
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            background-image: url('{% static "images/background.jpeg" %}');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .navbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .navbar h1 { font-size: 1.5rem; }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+        .navbar a:hover { background: rgba(52, 73, 94, 0.8); }
+        .hero-content {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 2rem;
+        }
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 0.5rem;
+        }
+        .btn-primary { background: #27ae60; color: white; }
+        .btn-primary:hover { background: #229954; }
+        .btn-secondary { background: #3498db; color: white; }
+        .btn-secondary:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <nav class="navbar">
+            <h1>🚌 BUK Bus Ticketing</h1>
+            <div>
+                <a href="{% url 'tickets:login' %}">Login</a>
+                <a href="{% url 'tickets:register' %}">Register</a>
+            </div>
+        </nav>
+        <div class="hero-content">
+            <h1>Welcome to BUK Bus Ticketing System</h1>
+            <p>Book your bus tickets online and travel hassle-free</p>
+            <div>
+                <a href="{% url 'tickets:register' %}" class="btn btn-primary">Register Now</a>
+                <a href="{% url 'tickets:login' %}" class="btn btn-secondary">Login</a>
+            </div>
+        </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

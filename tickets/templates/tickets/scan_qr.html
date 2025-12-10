@@ -1,27 +1,136 @@
 {% extends 'tickets/base.html' %}
 
 {% block content %}
-<div class="card" style="max-width: 800px; margin: 0 auto; text-align: center;">
-    <h2 style="margin-bottom: 1.5rem;">📷 QR Code Scanner</h2>
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <h2 style="margin-bottom: 1.5rem;">📷 Ticket Verification</h2>
     
-    <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; margin-bottom: 1.5rem;">
-        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Manual Entry (Paste QR Data)</p>
-        <input type="text" id="qrInput" placeholder="Paste QR code data here" style="width: 100%; padding: 1rem; font-size: 1rem; border: 2px solid #ddd; border-radius: 4px;">
-        <button onclick="verifyTicket()" class="btn btn-success" style="margin-top: 1rem; width: 100%;">Verify Ticket</button>
+    <!-- Mode Selection Tabs -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+        <button onclick="switchMode('camera')" id="tab-camera" class="btn btn-success" style="flex: 1;">
+            📷 Scan with Camera
+        </button>
+        <button onclick="switchMode('manual')" id="tab-manual" class="btn" style="flex: 1;">
+            ⌨️ Manual Entry
+        </button>
     </div>
-    
+
+    <!-- CAMERA MODE -->
+    <div id="camera-mode">
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <p id="status">Ready to scan</p>
+        </div>
+        
+        <div id="reader" style="width: 100%; border: 2px dashed #ddd; border-radius: 8px;"></div>
+        
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+            <button onclick="startScanning()" id="startBtn" class="btn btn-success">Start Camera</button>
+            <button onclick="stopScanning()" id="stopBtn" class="btn btn-danger" style="display: none;">Stop Camera</button>
+        </div>
+    </div>
+
+    <!-- MANUAL MODE -->
+    <div id="manual-mode" style="display: none;">
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px;">
+            <p style="margin-bottom: 1rem;">Enter booking reference or ticket number:</p>
+            <input type="text" id="manualInput" placeholder="BUK12345678 or TKT1234567890" 
+                   style="width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 4px; text-transform: uppercase; margin-bottom: 1rem;">
+            <button onclick="verifyManual()" class="btn btn-success" style="width: 100%;">Verify Ticket</button>
+        </div>
+    </div>
+
+    <!-- RESULT -->
     <div id="result" style="margin-top: 2rem;"></div>
 </div>
 
+<script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-function verifyTicket() {
-    const qrData = document.getElementById('qrInput').value.trim();
-    const resultDiv = document.getElementById('result');
+let html5QrCode = null;
+let isScanning = false;
+
+function switchMode(mode) {
+    const cameraMode = document.getElementById('camera-mode');
+    const manualMode = document.getElementById('manual-mode');
+    const tabCamera = document.getElementById('tab-camera');
+    const tabManual = document.getElementById('tab-manual');
     
-    if (!qrData) {
-        resultDiv.innerHTML = '<div class="alert alert-error">Please enter QR data</div>';
+    if (mode === 'camera') {
+        cameraMode.style.display = 'block';
+        manualMode.style.display = 'none';
+        tabCamera.classList.add('btn-success');
+        tabCamera.classList.remove('btn');
+        tabManual.classList.add('btn');
+        tabManual.classList.remove('btn-success');
+    } else {
+        cameraMode.style.display = 'none';
+        manualMode.style.display = 'block';
+        tabManual.classList.add('btn-success');
+        tabManual.classList.remove('btn');
+        tabCamera.classList.add('btn');
+        tabCamera.classList.remove('btn-success');
+        if (isScanning) stopScanning();
+    }
+}
+
+async function startScanning() {
+    try {
+        html5QrCode = new Html5Qrcode("reader");
+        const devices = await Html5Qrcode.getCameras();
+        
+        if (devices.length === 0) {
+            alert('No cameras found');
+            return;
+        }
+        
+        await html5QrCode.start(
+            devices[0].id,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+                verifyTicket(decodedText);
+            }
+        );
+        
+        isScanning = true;
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'inline-block';
+        document.getElementById('status').textContent = 'Scanning... Point camera at QR code';
+    } catch (err) {
+        alert('Error: ' + err);
+    }
+}
+
+async function stopScanning() {
+    if (html5QrCode && isScanning) {
+        await html5QrCode.stop();
+        html5QrCode.clear();
+        isScanning = false;
+        document.getElementById('startBtn').style.display = 'inline-block';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('status').textContent = 'Scanner stopped';
+    }
+}
+
+function verifyManual() {
+    const input = document.getElementById('manualInput').value.trim().toUpperCase();
+    if (!input) {
+        alert('Please enter a booking reference or ticket number');
         return;
     }
+    
+    let qrData = input;
+    if (!input.includes('|')) {
+        if (input.startsWith('BUK')) {
+            qrData = `BOOKING:${input}|TICKET:|USER:`;
+        } else if (input.startsWith('TKT')) {
+            qrData = `BOOKING:|TICKET:${input}|USER:`;
+        }
+    }
+    
+    verifyTicket(qrData);
+}
+
+function verifyTicket(qrData) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '<div class="alert alert-success">Verifying...</div>';
     
     fetch("{% url 'tickets:verify_ticket' %}", {
         method: 'POST',
@@ -36,8 +145,8 @@ function verifyTicket() {
         if (data.success) {
             resultDiv.innerHTML = `
                 <div class="alert alert-success">
-                    <h3>${data.message}</h3>
-                    <div style="text-align: left; margin-top: 1rem; background: white; padding: 1rem; border-radius: 4px;">
+                    <h3>✅ ${data.message}</h3>
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; text-align: left;">
                         <p><strong>Booking Ref:</strong> ${data.booking.reference}</p>
                         <p><strong>Ticket No:</strong> ${data.booking.ticket_number}</p>
                         <p><strong>Student:</strong> ${data.booking.user}</p>
@@ -46,7 +155,7 @@ function verifyTicket() {
                     </div>
                 </div>
             `;
-            document.getElementById('qrInput').value = '';
+            document.getElementById('manualInput').value = '';
         } else {
             resultDiv.innerHTML = `<div class="alert alert-error">❌ ${data.message}</div>`;
         }

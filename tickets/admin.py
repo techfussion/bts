@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet, WalletTransaction, Booking
+from .models import Wallet, WalletTransaction, Booking, Payment
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -16,3 +16,7 @@ class BookingAdmin(admin.ModelAdmin):
     list_display = ['booking_reference', 'ticket_number', 'user', 'fare', 'status', 'booking_date']
     list_filter = ['status', 'booking_date']
     search_fields = ['booking_reference', 'ticket_number', 'user__username']
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['reference', 'user', 'amount', 'status', 'created_at']

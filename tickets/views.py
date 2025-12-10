@@ -7,8 +7,9 @@ from django.db import transaction
 from django.utils import timezone
 from django.http import JsonResponse
 from decimal import Decimal
-from .models import Wallet, WalletTransaction, Booking
+from .models import Wallet, WalletTransaction, Booking, Payment
 import json
+from .paystack_utils import PaystackAPI
 
 # ============================================
 # HOME & AUTHENTICATION VIEWS
@@ -92,7 +93,7 @@ def dashboard(request):
 
 @login_required
 def fund_wallet(request):
-    """Fund wallet"""
+    """Fund wallet - now supports both manual and Paystack"""
     if request.method == 'POST':
         amount = request.POST.get('amount')
         
@@ -112,7 +113,7 @@ def fund_wallet(request):
                     wallet=wallet,
                     transaction_type='CREDIT',
                     amount=amount,
-                    description='Wallet Funding'
+                    description='Manual Wallet Funding'
                 )
             
             messages.success(request, f'₦{amount} added to your wallet successfully!')
@@ -122,7 +123,12 @@ def fund_wallet(request):
             messages.error(request, 'Invalid amount')
             return redirect('tickets:fund_wallet')
     
-    return render(request, 'tickets/fund_wallet.html')
+    # Pass Paystack public key to template
+    from django.conf import settings
+    context = {
+        'PAYSTACK_PUBLIC_KEY': settings.PAYSTACK_PUBLIC_KEY
+    }
+    return render(request, 'tickets/fund_wallet.html', context)
 
 
 # ============================================
@@ -262,3 +268,90 @@ def verify_ticket(request):
             })
     
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+@login_required
+def initialize_payment(request):
+    """Initialize Paystack payment"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            amount = Decimal(data.get('amount', 0))
+            
+            if amount < 100:
+                return JsonResponse({'success': False, 'message': 'Minimum amount is ₦100'})
+            
+            # Create payment record
+            payment = Payment.objects.create(
+                user=request.user,
+                amount=amount,
+                email=request.user.email or f"{request.user.username}@buk.edu.ng"
+            )
+            
+            # Initialize with Paystack
+            paystack = PaystackAPI()
+            response = paystack.initialize_transaction(
+                email=payment.email,
+                amount=amount,
+                reference=payment.reference
+            )
+            
+            if response.get('status'):
+                return JsonResponse({
+                    'success': True,
+                    'authorization_url': response['data']['authorization_url'],
+                    'reference': payment.reference
+                })
+            else:
+                payment.status = 'FAILED'
+                payment.save()
+                return JsonResponse({'success': False, 'message': 'Payment failed'})
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@login_required
+def verify_payment(request, reference):
+    """Verify payment and credit wallet"""
+    try:
+        payment = Payment.objects.get(reference=reference, user=request.user)
+        
+        if payment.status == 'SUCCESS':
+            messages.info(request, 'Payment already processed')
+            return redirect('tickets:dashboard')
+        
+        # Verify with Paystack
+        paystack = PaystackAPI()
+        response = paystack.verify_transaction(reference)
+        
+        if response.get('status') and response['data']['status'] == 'success':
+            with transaction.atomic():
+                payment.status = 'SUCCESS'
+                payment.save()
+                
+                # Credit wallet
+                wallet = request.user.wallet
+                wallet.balance += payment.amount
+                wallet.save()
+                
+                # Create transaction record
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    transaction_type='CREDIT',
+                    amount=payment.amount,
+                    description=f'Paystack Payment - Ref: {reference}'
+                )
+            
+            messages.success(request, f'₦{payment.amount} added to your wallet!')
+            return redirect('tickets:dashboard')
+        else:
+            payment.status = 'FAILED'
+            payment.save()
+            messages.error(request, 'Payment verification failed')
+            return redirect('tickets:fund_wallet')
+            
+    except Payment.DoesNotExist:
+        messages.error(request, 'Payment not found')
+        return redirect('tickets:dashboard')

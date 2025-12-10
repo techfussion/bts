@@ -16,6 +16,9 @@ urlpatterns = [
     path('booking/create/', views.create_booking, name='create_booking'),
     path('booking/history/', views.booking_history, name='booking_history'),
     path('booking/<int:booking_id>/', views.booking_detail, name='booking_detail'),
+
+    path('payment/initialize/', views.initialize_payment, name='initialize_payment'),
+    path('payment/verify/<str:reference>/', views.verify_payment, name='verify_payment'),
     
     # Admin/Staff
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
