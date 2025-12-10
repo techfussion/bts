@@ -6,20 +6,20 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
     <div class="card">
         <h3>Wallet Balance</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #27ae60;">₦{{ wallet.balance }}</p>
-        <a href="{% url 'tickets:fund_wallet' %}" class="btn btn-success">Fund Wallet</a>
+        <p style="font-size: 2rem; font-weight: lighter;">₦ {{ wallet.balance }}</p>
+        <a href="{% url 'tickets:fund_wallet' %}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Fund Wallet</a>
     </div>
     
     <div class="card">
         <h3>Book Ticket</h3>
-        <p>Fare: ₦200.00</p>
-        <a href="{% url 'tickets:create_booking' %}" class="btn">Book Now</a>
+        <p style="font-size: 2rem; font-weight: lighter;">₦ 200.00 <span style="font-size: .8rem;">Cost per ticket</span></p>
+        <a href="{% url 'tickets:create_booking' %}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Book Now</a>
     </div>
     
     <div class="card">
         <h3>My Bookings</h3>
-        <p>Total: {{ recent_bookings.count }}</p>
-        <a href="{% url 'tickets:booking_history' %}" class="btn">View All</a>
+        <p style="font-size: 2rem; font-weight: lighter;">{{ recent_bookings.count }}</p>
+        <a href="{% url 'tickets:booking_history' %}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">View All</a>
     </div>
 </div>
 
