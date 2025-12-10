@@ -16,11 +16,11 @@
             {% csrf_token %}
             <p style="margin-bottom: 1rem;">Click below to confirm your booking</p>
             <button type="submit" class="btn btn-success">Confirm Booking</button>
-            <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Cancel</a>
+            <a href="{% url 'tickets:dashboard' %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: 0.5rem;">Cancel</a>
         </form>
     {% else %}
-        <a href="{% url 'tickets:fund_wallet' %}" class="btn btn-success">Fund Wallet First</a>
-        <a href="{% url 'tickets:dashboard' %}" class="btn" style="margin-left: 0.5rem;">Back</a>
+        <a href="{% url 'tickets:fund_wallet' %}" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: 0.5rem;">Fund Wallet First</a>
+        <a href="{% url 'tickets:dashboard' %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: 0.5rem;">Back</a>
     {% endif %}
 </div>
 {% endblock %}
